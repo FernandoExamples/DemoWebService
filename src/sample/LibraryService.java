@@ -17,6 +17,7 @@ public class LibraryService {
 
     public static void main(String[] args) throws IOException {
         String url = "https://images-api.nasa.gov/search?q=Orion&page=2&media_type=image,video,audio&year_start=1920&year_end=2019";
+        //String url = "https://images-api.nasa.gov/search?q=Orion&page=1&media_type=audio&year_start=1920&year_end=2019";
 
         HttpClientBuilder hcBuilder = HttpClients.custom();
         HttpClient client = hcBuilder.build();
@@ -31,7 +32,7 @@ public class LibraryService {
         HttpResponse response = client.execute(request);
 
         System.out.println("\nSending 'Get' to " + url);
-        System.out.println("HTTP Response: " +  response.getStatusLine().getStatusCode());
+        System.out.println("HTTP Response: " + response.getStatusLine().getStatusCode());
 
         BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
 
@@ -61,12 +62,13 @@ public class LibraryService {
         System.out.println();
         System.out.println("----------------Links of PAGES (NEXT or PREVIOUS)--------------------");
 
-        for (LinkCollection link : collection.getLinks()){
-            System.out.println("Prompt: " + link.getPrompt());
-            System.out.println("Rel: " + link.getRel());
-            System.out.println("Href Link: " + link.getHref());
-            System.out.println();
-        }
+        if (collection.getLinks() != null)
+            for (LinkCollection link : collection.getLinks()) {
+                System.out.println("Prompt: " + link.getPrompt());
+                System.out.println("Rel: " + link.getRel());
+                System.out.println("Href Link: " + link.getHref());
+                System.out.println();
+            }
 
         System.out.println();
         System.out.println("----------------------------------Items------------------");
@@ -80,7 +82,7 @@ public class LibraryService {
             item = items.get(i);
             System.out.println("Href item: " + item.getHref());
 
-            for(Data data : item.getData()){
+            for (Data data : item.getData()) {
                 System.out.println("Center: " + data.getCenter());
                 System.out.println("Date Created: " + data.getDate_created());
                 System.out.println("Location: " + data.getLocation());
@@ -99,13 +101,14 @@ public class LibraryService {
             }
 
             int j = 0;
-            for(LinkItem link : item.getLinks()){
-                System.out.println(" ----- link " + j + "-----");
-                System.out.println("    Href: " + link.getHref());
-                System.out.println("    Rel: " + link.getRel());
-                System.out.println("    Render: " + link.getRender());
-                j++;
-            }
+            if (item.getLinks() != null)
+                for (LinkItem link : item.getLinks()) {
+                    System.out.println(" ----- link " + j + "-----");
+                    System.out.println("    Href: " + link.getHref());
+                    System.out.println("    Rel: " + link.getRel());
+                    System.out.println("    Render: " + link.getRender());
+                    j++;
+                }
 
             System.out.println();
             System.out.println();
