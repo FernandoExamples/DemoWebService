@@ -1,5 +1,11 @@
-package sample;
+package sample.LibraryService;
 
+import org.apache.http.client.utils.URLEncodedUtils;
+import sample.Service;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 
 public class LibraryCollection {
@@ -15,9 +21,116 @@ public class LibraryCollection {
     public void setCollection(Collection collection) {
         this.collection = collection;
     }
+
+    /**
+     * Separa Los enlaces en JSON por comas
+     *
+     * @param JSONResult
+     * @return
+     */
+    private static String[] splitLinks(String JSONResult) {
+        return JSONResult.split("\",");
+    }
+
+    private static String removeJSONCharacters(String secuence) {
+        if (secuence.startsWith(" "))
+            secuence = secuence.substring(1);
+
+        String s = secuence.replaceAll("\\[", "")
+                .replaceAll("\\]", "")
+                .replaceAll("\"", "");
+
+        return s;
+    }
+
+    /**
+     * Clases internas para el tratamiento de los medios
+     **/
+
+    public static class Image {
+        private String JSONResult;
+
+        public Image(String href) throws IOException {
+            JSONResult = Service.getRequest(href);
+        }
+
+        public String getJSONResult() {
+            return JSONResult;
+        }
+
+        /**
+         * De la lista de links, regresa el que lleva a la imagen small
+         *
+         * @return
+         */
+        public String getLinkImage() {
+            String[] links = splitLinks(JSONResult);
+
+            for (String l : links)
+                if (l.contains("small")) {
+                    l = removeJSONCharacters(l);
+                    return Service.removeCommonsCharacter(l);
+                    //System.out.println(removeJSONCharacters(l));
+                }
+
+            return null;
+        }
+    }
+
+    public static class Video {
+        private String JSONResult;
+
+        public Video(String href) throws IOException {
+            JSONResult = Service.getRequest(href);
+        }
+
+        public String getJSONResult() {
+            return JSONResult;
+        }
+
+        public String getLinkVideo() {
+            String links[] = splitLinks(JSONResult);
+
+            for (String l : links) {
+                if (l.contains("medium.mp4")) {
+                    l = removeJSONCharacters(l);
+                    return Service.removeCommonsCharacter(l);
+                    //System.out.println(removeJSONCharacters(l));
+                }
+            }
+
+            return null;
+        }
+    }
+
+    public static class Audio {
+        private String JSONResult;
+
+        public Audio(String href) throws IOException {
+            JSONResult = Service.getRequest(href);
+        }
+
+        public String getJSONResult() {
+            return JSONResult;
+        }
+
+        public String getLinkAudio() {
+            String links[] = splitLinks(JSONResult);
+
+            for (String l : links) {
+                if (l.contains("128k.mp3")) {
+                    l = removeJSONCharacters(l);
+                    return Service.removeCommonsCharacter(l);
+                    //System.out.println(removeJSONCharacters(l));
+                }
+            }
+
+            return null;
+        }
+    }
 }
 
-class Collection{
+class Collection {
     private String version;
     private Metadata metadata; //metadata of search. Only total of results. But JSON send it like a class.
     private String href;       //link of the search
@@ -43,7 +156,7 @@ class Collection{
     }
 
     public String getHref() {
-        return href;
+        return Service.removeCommonsCharacter(href);
     }
 
     public void setHref(String href) {
@@ -68,7 +181,7 @@ class Collection{
     //</editor-fold>
 }
 
-class Metadata{
+class Metadata {
     private int total_hits; //total of items
 
     // <editor-fold defaultstate="collapsed" desc="Getters and Setters">
@@ -83,7 +196,7 @@ class Metadata{
 
 }
 
-class LinkCollection{
+class LinkCollection {
     private String rel; //the abbreviation of the promt --> next or prev
     private String prompt; //word Next or Previous depending of link is for the previous or Next page
     private String href; //the link of the previous or next page
@@ -106,7 +219,7 @@ class LinkCollection{
     }
 
     public String getHref() {
-        return href;
+        return Service.removeCommonsCharacter(href);
     }
 
     public void setHref(String href) {
@@ -119,9 +232,9 @@ class LinkCollection{
 /**
  * --------------------------------Clase que almacena cada Item de la busqueda-------------------
  */
-class Item{
+class Item {
     private ArrayList<Data> data; //all data of this item
-    private String href; //the link of JSON of this specific item. NOT of the media but JSON information
+    private String href; //the link of JSON of this specific item. NOT of the media but JSON information. This is the most important link to go to the media
     private ArrayList<LinkItem> links; //the links of the preview. Generally it is only one for images and two for videos
 
     // <editor-fold defaultstate="collapsed" desc="Getters and Setters">
@@ -135,7 +248,7 @@ class Item{
     }
 
     public String getHref() {
-        return href;
+        return Service.removeCommonsCharacter(href);
     }
 
     public void setHref(String href) {
@@ -154,7 +267,7 @@ class Item{
 
 }
 
-class Data{
+class Data {
     private String center;
     private String description;
     private String nasa_id;
@@ -209,7 +322,7 @@ class Data{
     }
 
     public String getDate_created() {
-        return date_created.substring(0,10);
+        return date_created.substring(0, 10);
     }
 
     public void setDate_created(String date_created) {
@@ -251,7 +364,7 @@ class Data{
     // </editor-fold>
 }
 
-class LinkItem{
+class LinkItem {
     private String render; //how render this preview.
     private String href; //the link of the preview of the item.
     private String rel;
@@ -266,7 +379,7 @@ class LinkItem{
     }
 
     public String getHref() {
-        return href;
+        return Service.removeCommonsCharacter(href);
     }
 
     public void setHref(String href) {

@@ -1,54 +1,64 @@
-package sample;
+package sample.LibraryService;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
+import sample.Service;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 public class LibraryService {
 
+    public String getRequest() throws IOException {
+        String res;
+
+        //image, video and audio
+        String url = "https://images-api.nasa.gov/search?q=Orion&page=3&media_type=image,video,audio&year_start=1920&year_end=2019";
+
+        //image
+//        String url = "https://images-api.nasa.gov/search?q=Orion&page=2&media_type=image&year_start=1920&year_end=2019";
+
+        //video
+//        String url = "https://images-api.nasa.gov/search?q=Orion&page=2&media_type=video&year_start=1920&year_end=2019";
+
+        //audio
+//        String url = "https://images-api.nasa.gov/search?q=Orion&page=1&media_type=audio&year_start=1920&year_end=2019";
+
+        res = Service.getRequest(url);
+
+        return res;
+    }
+
+    public void processImage(String Href) throws IOException {
+        LibraryCollection.Image image = new LibraryCollection.Image(Href);
+
+        System.out.println("Link to go To Image " + image.getLinkImage());
+    }
+
+    public void processVideo(String Href) throws IOException {
+        LibraryCollection.Video video = new LibraryCollection.Video(Href);
+
+        System.out.println("Link to go To Video " + video.getLinkVideo());
+    }
+
+    public void processAudio(String Href) throws IOException {
+        LibraryCollection.Audio audio = new LibraryCollection.Audio(Href);
+
+        System.out.println("Link to go To Audio " + audio.getLinkAudio());
+    }
+
     public static void main(String[] args) throws IOException {
-        String url = "https://images-api.nasa.gov/search?q=Orion&page=2&media_type=image,video,audio&year_start=1920&year_end=2019";
-        //String url = "https://images-api.nasa.gov/search?q=Orion&page=1&media_type=audio&year_start=1920&year_end=2019";
 
-        HttpClientBuilder hcBuilder = HttpClients.custom();
-        HttpClient client = hcBuilder.build();
+        LibraryService libraryService = new LibraryService();
 
-        HttpGet request = new HttpGet(url);
-
-        //Setting header parameters
-        request.addHeader("Content-Type", "application/json");
-        request.addHeader("Accept", "application/json");
-
-        //Executing the call
-        HttpResponse response = client.execute(request);
-
-        System.out.println("\nSending 'Get' to " + url);
-        System.out.println("HTTP Response: " + response.getStatusLine().getStatusCode());
-
-        BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
-
-        //Reading the response
-        StringBuilder result = new StringBuilder();
-        String line = "";
-        while ((line = rd.readLine()) != null)
-            result.append(line);
-
+        String result = libraryService.getRequest();
 
         /** PARSE JSON to JAVA **/
 
         ObjectMapper mapper = new ObjectMapper();
         mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
-        LibraryCollection library = mapper.readValue(result.toString(), LibraryCollection.class);
+        LibraryCollection library = mapper.readValue(result, LibraryCollection.class);
 
         Collection collection = library.getCollection();
 
@@ -93,8 +103,9 @@ public class LibraryService {
                 System.out.println("Title: " + data.getTitle());
 
                 System.out.print("Keywords: ");
-                for (String keyword : data.getKeywords())
-                    System.out.print(keyword + ", ");
+                if (data.getKeywords() != null)
+                    for (String keyword : data.getKeywords())
+                        System.out.print(keyword + ", ");
 
                 System.out.println();
                 System.out.println("Description: " + data.getDescription());
@@ -112,6 +123,20 @@ public class LibraryService {
 
             System.out.println();
             System.out.println();
+
+
+            //Tratar cada Item dependiendo de que tipo sea
+            if (item.getData().get(0).getMedia_type().equals("image")) {
+                libraryService.processImage(item.getHref());
+                System.out.println();
+            } else if (item.getData().get(0).getMedia_type().equals("video")) {
+                libraryService.processVideo(item.getHref());
+                System.out.println();
+            }else{
+                libraryService.processAudio(item.getHref());
+                System.out.println();
+            }
+
         }
 
     }

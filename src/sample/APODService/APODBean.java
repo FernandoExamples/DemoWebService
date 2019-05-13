@@ -1,4 +1,4 @@
-package sample;
+package sample.APODService;
 
 public class APODBean {
     //las propiedades deben tener el mismo nombre que la respuesta JSON
